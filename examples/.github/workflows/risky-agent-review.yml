@@ -1,0 +1,16 @@
+name: AI review (intentionally risky example)
+on:
+  pull_request_target:
+jobs:
+  review:
+    permissions:
+      contents: write
+      pull-requests: write
+    runs-on: ubuntu-latest
+    env:
+      REVIEW_API_KEY: ${{ secrets.REVIEW_API_KEY }}
+    steps:
+      - name: Run review agent
+        uses: example/claude-agent-action@v1
+        with:
+          prompt: "Review this pull request: ${{ github.event.pull_request.body }}"
