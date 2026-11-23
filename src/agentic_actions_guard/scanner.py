@@ -149,7 +149,10 @@ def _findings_for_workflow(path: Path, workflow: dict[str, Any]) -> list[dict[st
                     "evidence": evidence,
                 })
 
-            agent_text = "\n".join(_strings(step))
+            merged_env = dict(workflow_env)
+            merged_env.update(job_env)
+            merged_env.update(step_env)
+            agent_text = "\n".join(_strings({"step": step, "effective_env": merged_env}))
             event_match = _UNTRUSTED_EVENT.search(agent_text)
             event_json_match = _UNTRUSTED_EVENT_JSON.search(agent_text)
             if event_match or event_json_match:
@@ -158,9 +161,6 @@ def _findings_for_workflow(path: Path, workflow: dict[str, Any]) -> list[dict[st
                     "An agent step directly references issue/PR/comment event content; treat it as untrusted input and isolate it from instructions.",
                     evidence)
 
-            merged_env = dict(workflow_env)
-            merged_env.update(job_env)
-            merged_env.update(step_env)
             secret_match = _SECRET_REF.search("\n".join(_strings({"env": merged_env, "with": step.get("with", {}), "run": step.get("run", "")})))
             if secret_match:
                 add("AGENT_SECRET_REFERENCE", "high",

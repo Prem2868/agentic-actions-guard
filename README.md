@@ -33,7 +33,7 @@ Exit codes are `0` when the selected failure threshold is not met, `1` when it i
 
 The scanner heuristically identifies AI-agent steps from their names, action references, commands, and inputs. For those steps it reports:
 
-- **High — `AGENT_UNTRUSTED_EVENT_INPUT`:** a direct expression references issue, pull-request, comment, discussion, or review event content (or serializes the whole GitHub event) in the agent step.
+- **High — `AGENT_UNTRUSTED_EVENT_INPUT`:** a direct expression references issue, pull-request, comment, discussion, or review event content (or serializes the whole GitHub event) in the agent step or its effective workflow/job/step environment.
 - **High — `AGENT_SECRET_REFERENCE`:** a `${{ secrets.* }}` expression is present in the agent step or its effective workflow/job/step environment. Secret names and values are not included in the finding.
 - **High — `AGENT_ON_PULL_REQUEST_TARGET`:** an agent step runs in a workflow triggered by `pull_request_target`.
 - **Medium — `AGENT_WITH_WRITE_PERMISSION`:** the effective workflow/job permissions grant at least one explicit `write` scope to the agent job.

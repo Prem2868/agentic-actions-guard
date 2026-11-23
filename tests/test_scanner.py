@@ -62,6 +62,32 @@ jobs:
     assert scan(workflow) == []
 
 
+@pytest.mark.parametrize("env_scope", ["workflow", "job"])
+def test_detects_untrusted_event_input_in_inherited_environment(tmp_path: Path, env_scope: str):
+    workflow = tmp_path / f"{env_scope}-env.yml"
+    expression = "${{ github.event.pull_request.body }}"
+    workflow_env = f"env:\n  REVIEW_CONTEXT: {expression}\n" if env_scope == "workflow" else ""
+    job_env = f"    env:\n      REVIEW_CONTEXT: {expression}\n" if env_scope == "job" else ""
+    workflow.write_text(
+        f"""name: Review
+on: pull_request
+{workflow_env}jobs:
+  review:
+{job_env}    permissions:
+      contents: read
+    steps:
+      - name: Run agent
+        run: echo review
+""",
+        encoding="utf-8",
+    )
+
+    findings = scan(workflow)
+
+    event_finding = next(item for item in findings if item["rule_id"] == "AGENT_UNTRUSTED_EVENT_INPUT")
+    assert event_finding["evidence"] in expression
+
+
 def test_warns_when_agent_job_has_no_explicit_permissions(tmp_path: Path):
     workflow = tmp_path / "implicit.yml"
     workflow.write_text("""jobs:
