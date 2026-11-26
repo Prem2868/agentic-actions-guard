@@ -62,6 +62,31 @@ jobs:
     assert scan(workflow) == []
 
 
+def test_detects_workflow_run_payload_as_untrusted_input(tmp_path: Path):
+    workflow = tmp_path / "workflow-run.yml"
+    expression = "${{ github.event.workflow_run.head_branch }}"
+    workflow.write_text(
+        f"""name: Review
+on: workflow_run
+permissions:
+  contents: read
+jobs:
+  review:
+    steps:
+      - name: Run agent
+        uses: vendor/claude-agent-action@v1
+        with:
+          prompt: "Review run: {expression}"
+""",
+        encoding="utf-8",
+    )
+
+    findings = scan(workflow)
+
+    event_finding = next(item for item in findings if item["rule_id"] == "AGENT_UNTRUSTED_EVENT_INPUT")
+    assert event_finding["evidence"] in expression
+
+
 @pytest.mark.parametrize("env_scope", ["workflow", "job"])
 def test_detects_untrusted_event_input_in_inherited_environment(tmp_path: Path, env_scope: str):
     workflow = tmp_path / f"{env_scope}-env.yml"

@@ -33,7 +33,7 @@ Exit codes are `0` when the selected failure threshold is not met, `1` when it i
 
 The scanner heuristically identifies AI-agent steps from their names, action references, commands, and inputs. For those steps it reports:
 
-- **High — `AGENT_UNTRUSTED_EVENT_INPUT`:** a direct expression references issue, pull-request, comment, discussion, or review event content (or serializes the whole GitHub event) in the agent step or its effective workflow/job/step environment.
+- **High — `AGENT_UNTRUSTED_EVENT_INPUT`:** a direct expression references issue, pull-request, comment, discussion, review, or `workflow_run` event fields (or serializes the whole GitHub event) in the agent step or its effective workflow/job/step environment.
 - **High — `AGENT_SECRET_REFERENCE`:** a `${{ secrets.* }}` expression is present in the agent step or its effective workflow/job/step environment. Secret names and values are not included in the finding.
 - **High — `AGENT_ON_PULL_REQUEST_TARGET`:** an agent step runs in a workflow triggered by `pull_request_target`.
 - **Medium — `AGENT_WITH_WRITE_PERMISSION`:** the effective workflow/job permissions grant at least one explicit `write` scope to the agent job.
@@ -45,7 +45,7 @@ The YAML loader rejects duplicate mapping keys rather than silently choosing one
 
 ```text
 HIGH   AGENT_UNTRUSTED_EVENT_INPUT .github/workflows/review.yml :: review / Run Claude agent
-       An agent step directly references issue/PR/comment event content; treat it as untrusted input and isolate it from instructions.
+       An agent step directly references GitHub event payload fields; treat them as untrusted input and isolate them from instructions.
        Evidence: ${{ github.event.pull_request.body }}
 ```
 

@@ -41,7 +41,7 @@ _AGENT_MARKER = re.compile(
     re.IGNORECASE,
 )
 _UNTRUSTED_EVENT = re.compile(
-    r"\$\{\{\s*github\.event\.(?:issue|pull_request|pullrequest|comment|discussion|review|review_comment|head_commit)(?:\.[\w.-]+)?",
+    r"\$\{\{\s*github\.event\.(?:issue|pull_request|pullrequest|comment|discussion|review|review_comment|head_commit|workflow_run)(?:\.[\w.-]+)?",
     re.IGNORECASE,
 )
 _UNTRUSTED_EVENT_JSON = re.compile(r"toJSON\s*\(\s*github\.event\s*\)", re.IGNORECASE)
@@ -158,7 +158,7 @@ def _findings_for_workflow(path: Path, workflow: dict[str, Any]) -> list[dict[st
             if event_match or event_json_match:
                 evidence = event_match.group(0) if event_match else event_json_match.group(0)
                 add("AGENT_UNTRUSTED_EVENT_INPUT", "high",
-                    "An agent step directly references issue/PR/comment event content; treat it as untrusted input and isolate it from instructions.",
+                    "An agent step directly references GitHub event payload fields; treat them as untrusted input and isolate them from instructions.",
                     evidence)
 
             secret_match = _SECRET_REF.search("\n".join(_strings({"env": merged_env, "with": step.get("with", {}), "run": step.get("run", "")})))
